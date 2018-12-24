@@ -20,13 +20,13 @@ namespace DBeaverAutoUpdater.Core.BLL
             string path = ConfigurationManager.AppSettings["ConfigurationFilePath"];
             if(path.IsNullOrBlankString())
             {
-                throw new ArgumentException("No key 'ConfigurationFilePath' configured in the app config");
+                path = "config.xml";
             }
 
             ConfigFilePath = path;
         }
 
-        public ConfigurationItem RetrieveConfig()
+        public ConfigurationItem RetrieveConfiguration()
         {
             CreateConfigFileIfNecessary();
             string xml = File.ReadAllText(ConfigFilePath);
@@ -37,8 +37,8 @@ namespace DBeaverAutoUpdater.Core.BLL
         {
             configItem.AssertNotNull(nameof(configItem));
 
-            string xml = QuickXmlSerializer.SerializeObject(configItem);
             CreateConfigFileIfNecessary();
+            string xml = QuickXmlSerializer.SerializeObject(configItem);
             File.WriteAllText(ConfigFilePath, xml);
         }
 

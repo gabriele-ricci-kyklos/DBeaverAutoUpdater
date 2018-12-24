@@ -9,7 +9,7 @@ namespace DBeaverAutoUpdater.Core.BLL
 {
     public interface IConfigBLL
     {
-        ConfigurationItem RetrieveConfig();
+        ConfigurationItem RetrieveConfiguration();
         void SaveConfiguration(ConfigurationItem configItem);
         bool ConfigFileExists();
     }
