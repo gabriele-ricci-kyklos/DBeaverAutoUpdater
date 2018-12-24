@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DBeaverAutoUpdater.Core.BLL;
+using SimpleLogger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,15 +10,17 @@ namespace DBeaverAutoUpdater.GUI
 {
     static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            SimpleLog.SetLogFile(writeText: true, logLevel: SimpleLog.Severity.Exception);
+
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(new Form1());
+
+            IConfigBLL bll = new ConfigBLL();
+            bll.RetrieveConfig();
         }
     }
 }

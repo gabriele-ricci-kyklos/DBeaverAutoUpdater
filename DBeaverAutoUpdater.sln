@@ -1,9 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBeaverAutoUpdater.Core", "DBeaverAutoUpdater.Core\DBeaverAutoUpdater.Core.csproj", "{3CDC4E4D-A6F2-419F-8BF7-F39634C611B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBeaverAutoUpdater.GUI", "DBeaverAutoUpdater.GUI\DBeaverAutoUpdater.GUI.csproj", "{28A986D6-5928-4A26-83E1-7778BB51D629}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBeaverAutoUpdater.CommandLine", "DBeaverAutoUpdater.CommandLine\DBeaverAutoUpdater.CommandLine.csproj", "{1E4141A6-D9F8-445D-AE97-D986C22B11E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +19,19 @@ Global
 		{3CDC4E4D-A6F2-419F-8BF7-F39634C611B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CDC4E4D-A6F2-419F-8BF7-F39634C611B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CDC4E4D-A6F2-419F-8BF7-F39634C611B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28A986D6-5928-4A26-83E1-7778BB51D629}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28A986D6-5928-4A26-83E1-7778BB51D629}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28A986D6-5928-4A26-83E1-7778BB51D629}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28A986D6-5928-4A26-83E1-7778BB51D629}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E4141A6-D9F8-445D-AE97-D986C22B11E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E4141A6-D9F8-445D-AE97-D986C22B11E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E4141A6-D9F8-445D-AE97-D986C22B11E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E4141A6-D9F8-445D-AE97-D986C22B11E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {31D05182-4940-44DE-B088-42794B063B66}
 	EndGlobalSection
 EndGlobal
