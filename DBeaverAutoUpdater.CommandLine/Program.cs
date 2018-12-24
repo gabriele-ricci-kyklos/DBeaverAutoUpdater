@@ -1,4 +1,5 @@
-﻿using SimpleLogger;
+﻿using DBeaverAutoUpdater.Core.BLL;
+using SimpleLogger;
 using System;
 using System.Collections.Generic;
 using System.Linq;

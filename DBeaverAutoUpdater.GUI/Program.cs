@@ -20,7 +20,7 @@ namespace DBeaverAutoUpdater.GUI
             //Application.Run(new Form1());
 
             IConfigBLL bll = new ConfigBLL();
-            bll.RetrieveConfig();
+            bll.RetrieveConfiguration();
         }
     }
 }
