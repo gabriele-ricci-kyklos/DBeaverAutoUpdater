@@ -13,6 +13,20 @@ namespace DBeaverAutoUpdater.CommandLine
         static void Main(string[] args)
         {
             SimpleLog.SetLogFile(writeText: true, logLevel: SimpleLog.Severity.Exception);
+
+            try
+            {
+
+            }
+            catch (Exception ex)
+            {
+                SimpleLog.Error("An error occurred");
+                SimpleLog.Log(ex);
+            }
+            finally
+            {
+                SimpleLog.Flush();
+            }
         }
     }
 }

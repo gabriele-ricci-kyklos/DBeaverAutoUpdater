@@ -10,6 +10,6 @@ namespace DBeaverAutoUpdater.Core.BE
     public class ConfigurationItem
     {
         public string DBeaverInstallPath { get; set; }
-        public Architecture Architecture { get; set; }
+        public Architecture? Architecture { get; set; }
     }
 }

@@ -28,9 +28,38 @@ namespace DBeaverAutoUpdater.Core.BLL
 
         public ConfigurationItem RetrieveConfiguration()
         {
-            CreateConfigFileIfNecessary();
-            string xml = File.ReadAllText(ConfigFilePath);
-            return QuickXmlSerializer.DeserializeObject<ConfigurationItem>(xml);
+            try
+            {
+                CreateConfigFileIfNecessary();
+                string xml = File.ReadAllText(ConfigFilePath);
+                ConfigurationItem item = QuickXmlSerializer.DeserializeObject<ConfigurationItem>(xml);
+
+                if (!CheckConfiguration(item))
+                {
+                    throw new ArgumentException("Some errors occurred in retrieving the configuration");
+                }
+
+                return item;
+            }
+            catch(Exception ex)
+            {
+                throw new ArgumentException("Some errors occurred in retrieving the configuration", ex);
+            }
+        }
+
+        private bool CheckConfiguration(ConfigurationItem item)
+        {
+            if(item.IsNull())
+            {
+                return false;
+            }
+
+            if(item.DBeaverInstallPath.IsNullOrBlankString() || !item.Architecture.HasValue)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public void SaveConfiguration(ConfigurationItem configItem)
@@ -51,8 +80,7 @@ namespace DBeaverAutoUpdater.Core.BLL
         {
             if (!File.Exists(ConfigFilePath))
             {
-                //TODO: default configuration here
-                File.WriteAllText(ConfigFilePath, string.Empty);
+                File.Create(ConfigFilePath);
             }
         }
     }
