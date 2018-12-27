@@ -1,7 +1,6 @@
 ﻿using GenericCore.Compression.Zip;
 using GenericCore.Support;
 using GenericCore.Support.Web;
-using Microsoft.VisualBasic.FileIO;
 using SimpleLogger;
 using System;
 using System.Collections.Generic;
@@ -13,13 +12,14 @@ using System.Threading.Tasks;
 
 namespace DBeaverAutoUpdater.Core.BLL
 {
-    //TODO: improve FileSystem.CopyDirectory
-
     public class UpdateBLL : IUpdateBLL
     {
         public void UpdateVersion(string installationPath, byte[] zipArchive)
         {
+            SimpleLog.Info("Unzipping the downloaded archive");
             var files = Zipper.GetFileContentsFromZipFile(zipArchive);
+            SimpleLog.Info("The archive has been successfully zipped");
+
             string backupPath = CreateTempFolder();
 
             SimpleLog.Info($"Creating backup of the current version at {backupPath}");
@@ -27,25 +27,21 @@ namespace DBeaverAutoUpdater.Core.BLL
             SimpleLog.Info($"Backup has been created");
 
             string tempPath = CreateTempFolder();
-            foreach(var file in files)
-            {
-                File.WriteAllBytes(Path.Combine(tempPath, file.Item1), file.Item2);
-            }
+            Parallel.ForEach(files, file => File.WriteAllBytes(Path.Combine(tempPath, file.Item1), file.Item2));
 
             IOUtilities.EmptyFolder(installationPath);
-            FileSystem.CopyDirectory(tempPath, installationPath, true);
-
+            IOUtilities.CopyFolderTo(tempPath, installationPath, true);
             IOUtilities.DeleteFolder(tempPath);
         }
 
-        public void BackupCurrentVersion(string sourcePath, string destPath)
+        private void BackupCurrentVersion(string sourcePath, string destPath)
         {
             if (!Directory.Exists(sourcePath))
             {
                 throw new ArgumentException($"The path {sourcePath} is either not a directory or does not exist");
             }
 
-            FileSystem.CopyDirectory(sourcePath, destPath, true);
+            IOUtilities.CopyFolderTo(sourcePath, destPath, true);
         }
 
         private string CreateTempFolder()
