@@ -1,7 +1,7 @@
 ﻿using DBeaverAutoUpdater.Core.BE;
 using DBeaverAutoUpdater.Core.BLL;
+using DBeaverAutoUpdater.Core.Support.Logging;
 using GenericCore.Support;
-using SimpleLogger;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +17,8 @@ namespace DBeaverAutoUpdater.CommandLine
 
         static void Main(string[] args)
         {
-            SimpleLog.SetLogFile(writeText: true, logLevel: SimpleLog.Severity.Exception);
+            Logger.Initialize(mode: Logger.LoggingMode.Console);
+
             IConfigBLL configBLL = new ConfigBLL();
             IUpdateBLL updateBLL = new UpdateBLL();
 
@@ -57,12 +58,7 @@ namespace DBeaverAutoUpdater.CommandLine
             }
             catch (Exception ex)
             {
-                SimpleLog.Error("An error occurred");
-                SimpleLog.Log(ex);
-            }
-            finally
-            {
-                SimpleLog.Flush();
+                Logger.Error("An error occurred", ex);
             }
         }
     }

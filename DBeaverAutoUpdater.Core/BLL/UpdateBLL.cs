@@ -1,8 +1,8 @@
 ﻿using DBeaverAutoUpdater.Core.BE;
+using DBeaverAutoUpdater.Core.Support.Logging;
 using GenericCore.Compression.Zip;
 using GenericCore.Support;
 using GenericCore.Support.Web;
-using SimpleLogger;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,27 +26,27 @@ namespace DBeaverAutoUpdater.Core.BLL
             {
                 Task<byte[]> zipArchiveTask = Task.Factory.StartNew(() => RetrieveZipFileWithBackup(configItem.Architecture, localPath));
 
-                SimpleLog.Info($"Creating a backup of the current version at {backupPath}");
+                Logger.Info($"Creating a backup of the current version at {backupPath}");
                 BackupCurrentVersion(configItem.DBeaverInstallPath, backupPath);
-                SimpleLog.Info($"The backup has been created");
+                Logger.Info($"The backup has been created");
 
                 zipArchiveTask.Wait();
                 byte[] zipArchive = zipArchiveTask.Result;
 
-                SimpleLog.Info("Unzipping the downloaded archive");
+                Logger.Info("Unzipping the downloaded archive");
                 IList<Tuple<string, byte[]>> files = Zipper.GetFileContentsFromZipFile(zipArchive);
                 Parallel.ForEach(files, file => File.WriteAllBytes(Path.Combine(localPath, file.Item1), file.Item2));
-                SimpleLog.Info("The archive has been successfully zipped");
+                Logger.Info("The archive has been successfully zipped");
             }
             finally
             {
                 IOUtilities.DeleteFolder(localPath);
             }
 
-            SimpleLog.Info($"Patching DBeaver current version at {configItem.DBeaverInstallPath}");
+            Logger.Info($"Patching DBeaver current version at {configItem.DBeaverInstallPath}");
             IOUtilities.EmptyFolder(configItem.DBeaverInstallPath);
             IOUtilities.CopyFolderTo(localPath, configItem.DBeaverInstallPath, true);
-            SimpleLog.Info("Patching successful");
+            Logger.Info("Patching successful");
 
             IOUtilities.DeleteFolder(backupPath);
         }
@@ -83,17 +83,17 @@ namespace DBeaverAutoUpdater.Core.BLL
             string url = GetDownloadUrl(arch);
             string fileName = Utilities.GetFileNameFromUriString(url);
 
-            SimpleLog.Info("Downloading the zip archive");
+            Logger.Info("Downloading the zip archive");
             if(!WebDataRetriever.TryDownloadFile(url, out byte[] zipArchive))
             {
                 throw new ArgumentException("An error occurred while downloading the file");
             }
-            SimpleLog.Info("Finished downloading the zip archive");
+            Logger.Info("Finished downloading the zip archive");
 
             string localPath = Path.Combine(backupPath, fileName);
-            SimpleLog.Info($"Writing the zip archive locally to {localPath}");
+            Logger.Info($"Writing the zip archive locally to {localPath}");
             File.WriteAllBytes(localPath, zipArchive);
-            SimpleLog.Info("The zip archive has been successfully saved locally");
+            Logger.Info("The zip archive has been successfully saved locally");
 
             return zipArchive;
         }

@@ -61,7 +61,7 @@
     <Compile Include="BLL\IUpdateBLL.cs" />
     <Compile Include="BLL\UpdateBLL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Support\Logging\SimpleLog.cs" />
+    <Compile Include="Support\Logging\Logger.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
