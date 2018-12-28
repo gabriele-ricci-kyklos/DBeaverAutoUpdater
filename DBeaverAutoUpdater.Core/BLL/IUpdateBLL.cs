@@ -1,10 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿using DBeaverAutoUpdater.Core.BE;
 
 namespace DBeaverAutoUpdater.Core.BLL
 {
     public interface IUpdateBLL
     {
-        byte[] RetrieveZipFile(Architecture arch);
-        void UpdateVersion(string installationPath, byte[] zipArchive);
+        void UpdateVersion(ConfigurationItem configItem);
     }
 }

@@ -54,7 +54,7 @@ namespace DBeaverAutoUpdater.Core.BLL
                 return false;
             }
 
-            if(item.DBeaverInstallPath.IsNullOrBlankString() || !item.Architecture.HasValue)
+            if(item.DBeaverInstallPath.IsNullOrBlankString())
             {
                 return false;
             }
@@ -80,7 +80,7 @@ namespace DBeaverAutoUpdater.Core.BLL
         {
             if (!File.Exists(ConfigFilePath))
             {
-                File.Create(ConfigFilePath);
+                using (Stream s = File.Create(ConfigFilePath));
             }
         }
     }

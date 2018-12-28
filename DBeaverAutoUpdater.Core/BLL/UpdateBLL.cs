@@ -1,4 +1,5 @@
-﻿using GenericCore.Compression.Zip;
+﻿using DBeaverAutoUpdater.Core.BE;
+using GenericCore.Compression.Zip;
 using GenericCore.Support;
 using GenericCore.Support.Web;
 using SimpleLogger;
@@ -14,24 +15,40 @@ namespace DBeaverAutoUpdater.Core.BLL
 {
     public class UpdateBLL : IUpdateBLL
     {
-        public void UpdateVersion(string installationPath, byte[] zipArchive)
+        public void UpdateVersion(ConfigurationItem configItem)
         {
-            SimpleLog.Info("Unzipping the downloaded archive");
-            var files = Zipper.GetFileContentsFromZipFile(zipArchive);
-            SimpleLog.Info("The archive has been successfully zipped");
+            configItem.AssertNotNull(nameof(configItem));
 
             string backupPath = CreateTempFolder();
+            string localPath = CreateTempFolder();
 
-            SimpleLog.Info($"Creating backup of the current version at {backupPath}");
-            BackupCurrentVersion(installationPath, backupPath);
-            SimpleLog.Info($"Backup has been created");
+            try
+            {
+                Task<byte[]> zipArchiveTask = Task.Factory.StartNew(() => RetrieveZipFileWithBackup(configItem.Architecture, localPath));
 
-            string tempPath = CreateTempFolder();
-            Parallel.ForEach(files, file => File.WriteAllBytes(Path.Combine(tempPath, file.Item1), file.Item2));
+                SimpleLog.Info($"Creating a backup of the current version at {backupPath}");
+                BackupCurrentVersion(configItem.DBeaverInstallPath, backupPath);
+                SimpleLog.Info($"The backup has been created");
 
-            IOUtilities.EmptyFolder(installationPath);
-            IOUtilities.CopyFolderTo(tempPath, installationPath, true);
-            IOUtilities.DeleteFolder(tempPath);
+                zipArchiveTask.Wait();
+                byte[] zipArchive = zipArchiveTask.Result;
+
+                SimpleLog.Info("Unzipping the downloaded archive");
+                IList<Tuple<string, byte[]>> files = Zipper.GetFileContentsFromZipFile(zipArchive);
+                Parallel.ForEach(files, file => File.WriteAllBytes(Path.Combine(localPath, file.Item1), file.Item2));
+                SimpleLog.Info("The archive has been successfully zipped");
+            }
+            finally
+            {
+                IOUtilities.DeleteFolder(localPath);
+            }
+
+            SimpleLog.Info($"Patching DBeaver current version at {configItem.DBeaverInstallPath}");
+            IOUtilities.EmptyFolder(configItem.DBeaverInstallPath);
+            IOUtilities.CopyFolderTo(localPath, configItem.DBeaverInstallPath, true);
+            SimpleLog.Info("Patching successful");
+
+            IOUtilities.DeleteFolder(backupPath);
         }
 
         private void BackupCurrentVersion(string sourcePath, string destPath)
@@ -54,18 +71,29 @@ namespace DBeaverAutoUpdater.Core.BLL
             return backupFolder;
         }
 
-        public byte[] RetrieveZipFile(Architecture arch)
+        private byte[] RetrieveZipFileWithBackup(Architecture arch, string backupPath)
         {
-            if(arch != Architecture.X86 || arch != Architecture.X64)
+            backupPath.AssertHasText(nameof(backupPath));
+
+            if (arch != Architecture.X86 && arch != Architecture.X64)
             {
                 throw new ArgumentException($"Architecture {arch} not supported");
             }
 
             string url = GetDownloadUrl(arch);
+            string fileName = Utilities.GetFileNameFromUriString(url);
+
+            SimpleLog.Info("Downloading the zip archive");
             if(!WebDataRetriever.TryDownloadFile(url, out byte[] zipArchive))
             {
                 throw new ArgumentException("An error occurred while downloading the file");
             }
+            SimpleLog.Info("Finished downloading the zip archive");
+
+            string localPath = Path.Combine(backupPath, fileName);
+            SimpleLog.Info($"Writing the zip archive locally to {localPath}");
+            File.WriteAllBytes(localPath, zipArchive);
+            SimpleLog.Info("The zip archive has been successfully saved locally");
 
             return zipArchive;
         }
@@ -74,7 +102,7 @@ namespace DBeaverAutoUpdater.Core.BLL
         {
             const string _baseDownloadUrl = "https://dbeaver.io/files/dbeaver-ce-latest-win32.win32.x86{0}.zip";
 
-            if (arch != Architecture.X86 || arch != Architecture.X64)
+            if (arch != Architecture.X86 && arch != Architecture.X64)
             {
                 throw new ArgumentException($"Architecture {arch} not supported");
             }
