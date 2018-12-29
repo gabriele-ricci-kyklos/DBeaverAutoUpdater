@@ -153,7 +153,7 @@ namespace DBeaverAutoUpdater.Core.Support.Logging
 
         public static void Error(string message, Exception ex = null)
         {
-            Log(LogEntry.New(message, LoggingSeverity.Error));
+            Log(LogEntry.New(message, LoggingSeverity.Error, ex));
         }
 
         public static void Flush()
@@ -166,5 +166,5 @@ namespace DBeaverAutoUpdater.Core.Support.Logging
             _stopLoggingRequested = true;
             _backgroundTask.Wait();
         }
-        }
+    }
 }

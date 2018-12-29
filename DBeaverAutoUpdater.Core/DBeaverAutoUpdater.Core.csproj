@@ -56,7 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BE\ConfigurationItem.cs" />
+    <Compile Include="BLL\CommonBLL.cs" />
     <Compile Include="BLL\ConfigBLL.cs" />
+    <Compile Include="BLL\ICommonBLL.cs" />
     <Compile Include="BLL\IConfigBLL.cs" />
     <Compile Include="BLL\IUpdateBLL.cs" />
     <Compile Include="BLL\UpdateBLL.cs" />

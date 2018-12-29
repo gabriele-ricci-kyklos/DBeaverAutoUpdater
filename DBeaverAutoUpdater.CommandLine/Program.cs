@@ -42,7 +42,7 @@ namespace DBeaverAutoUpdater.CommandLine
                                 new ConfigurationItem
                                 {
                                     DBeaverInstallPath = args[1].TrimStart().TrimEnd(),
-                                    Architecture = args[2].ToEnum(Architecture.X86)
+                                    Architecture = args[2].ToUpperInvariant().ToEnum(Architecture.X86)
                                 }
                             );
 
@@ -62,6 +62,10 @@ namespace DBeaverAutoUpdater.CommandLine
             catch (Exception ex)
             {
                 Logger.Error("An error occurred", ex);
+            }
+            finally
+            {
+                Logger.Flush();
             }
         }
     }
