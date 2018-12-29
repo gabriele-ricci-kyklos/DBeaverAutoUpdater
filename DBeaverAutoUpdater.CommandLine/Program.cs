@@ -3,11 +3,7 @@ using DBeaverAutoUpdater.Core.BLL;
 using DBeaverAutoUpdater.Core.Support.Logging;
 using GenericCore.Support;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DBeaverAutoUpdater.CommandLine
 {
@@ -15,9 +11,16 @@ namespace DBeaverAutoUpdater.CommandLine
     {
         const string _argCreateConfigFile = "-c";
 
+        //static void Main(string[] args)
+        //{
+        //    Logger.Initialize(mode: LoggingMode.File, useBackgroundTask: true);
+        //    Logger.Info("lol");
+        //    Logger.Flush();
+        //}
+
         static void Main(string[] args)
         {
-            Logger.Initialize(mode: Logger.LoggingMode.Console);
+            Logger.Initialize(mode: LoggingMode.Console, useBackgroundTask: true);
 
             IConfigBLL configBLL = new ConfigBLL();
             IUpdateBLL updateBLL = new UpdateBLL();

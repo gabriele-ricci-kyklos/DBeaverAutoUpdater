@@ -24,7 +24,7 @@ namespace DBeaverAutoUpdater.Core.BLL
 
             try
             {
-                Task<byte[]> zipArchiveTask = Task.Factory.StartNew(() => RetrieveZipFileWithBackup(configItem.Architecture, localPath));
+                Task<byte[]> zipArchiveTask = Task.Run(() => RetrieveZipFileWithBackup(configItem.Architecture, localPath));
 
                 Logger.Info($"Creating a backup of the current version at {backupPath}");
                 BackupCurrentVersion(configItem.DBeaverInstallPath, backupPath);
