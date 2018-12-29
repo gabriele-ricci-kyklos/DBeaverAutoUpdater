@@ -13,14 +13,14 @@ namespace DBeaverAutoUpdater.CommandLine
 
         //static void Main(string[] args)
         //{
-        //    Logger.Initialize(mode: LoggingMode.File, useBackgroundTask: true);
+        //    Logger.Initialize(mode: LoggingMode.Both, useBackgroundTask: true);
         //    Logger.Info("lol");
         //    Logger.Flush();
         //}
 
         static void Main(string[] args)
         {
-            Logger.Initialize(mode: LoggingMode.Console, useBackgroundTask: true);
+            Logger.Initialize(mode: LoggingMode.Both, useBackgroundTask: true);
 
             IConfigBLL configBLL = new ConfigBLL();
             IUpdateBLL updateBLL = new UpdateBLL();

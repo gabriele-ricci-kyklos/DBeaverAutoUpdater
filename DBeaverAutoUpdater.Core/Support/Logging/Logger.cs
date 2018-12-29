@@ -1,17 +1,19 @@
 ﻿using GenericCore.Support;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace DBeaverAutoUpdater.Core.Support.Logging
 {
-    public enum LoggingMode { Console, File }
+    public enum LoggingMode { Console, File, Both }
     public enum LoggingSeverity { Debug, Info, Error }
 
     class LogEntry
     {
+        public DateTime Time { get; }
+        public string TimeFormatted => Time.ToString("yyyy-MM-dd HH:mm:ss.fff");
         public LoggingSeverity Severity { get; }
         public string Message { get; }
         public Exception Exception { get; }
@@ -33,6 +35,7 @@ namespace DBeaverAutoUpdater.Core.Support.Logging
             Severity = severity;
             Message = message;
             Exception = exception;
+            Time = DateTime.Now;
         }
     }
 
@@ -54,7 +57,7 @@ namespace DBeaverAutoUpdater.Core.Support.Logging
 
         public static void Initialize(string logFilePath = null, bool useBackgroundTask = false, LoggingSeverity severity = LoggingSeverity.Debug, LoggingMode mode = LoggingMode.File)
         {
-            FilePath = logFilePath.IsNullOrBlankString() && mode == LoggingMode.File ? $@"Logs\{GetCurrentDateString()}.log" : logFilePath;
+            FilePath = logFilePath.IsNullOrBlankString() ? $@"Logs\{GetCurrentDateString()}.log" : logFilePath;
             Severity = severity;
             Mode = mode;
             UseBackgroundTask = useBackgroundTask;
@@ -81,23 +84,18 @@ namespace DBeaverAutoUpdater.Core.Support.Logging
             }
         }
 
-        private static TextWriter GetTextWriter()
+        private static IList<TextWriter> GetTextWriterList()
         {
             if (Mode == LoggingMode.Console)
             {
-                return Console.Out;
+                return Console.Out.AsList();
             }
 
             string dir = Path.GetDirectoryName(FilePath);
             Directory.CreateDirectory(dir);
             FileStream stream = new FileStream(FilePath, FileMode.Append, FileAccess.Write);
-            StreamWriter writer = new StreamWriter(stream);
-            return writer;
-        }
-
-        private static string GetCurrentTimeString()
-        {
-            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            TextWriter writer = new StreamWriter(stream);
+            return Mode == LoggingMode.Both ? new List<TextWriter> { writer, Console.Out } : writer.AsList();
         }
 
         private static string GetCurrentDateString()
@@ -126,19 +124,25 @@ namespace DBeaverAutoUpdater.Core.Support.Logging
 
         private static void LogImpl(LogEntry entry)
         {
-            using (TextWriter writer = GetTextWriter())
-            {
-                TextWriter defaultWriter = Console.Out;
-                Console.SetOut(writer);
+            IList<TextWriter> writers = GetTextWriterList();
 
-                string timeStr = GetCurrentTimeString();
-                Console.WriteLine($"{timeStr} {entry.Severity.ToString()} - {entry.Message}");
+            Parallel
+                .ForEach
+                (
+                    writers,
+                    writer =>
+                    {
+                        using (writer)
+                        {
+                            writer.WriteLine($"{entry.TimeFormatted} {entry.Severity.ToString()} - {entry.Message}");
 
-                if (entry.Exception.IsNotNull())
-                {
-                    Console.WriteLine(entry.Exception.ToString());
-                }
-            }
+                            if (entry.Exception.IsNotNull())
+                            {
+                                writer.WriteLine(entry.Exception.ToString());
+                            }
+                        }
+                    }
+                );
         }
 
         public static void Debug(string message)
