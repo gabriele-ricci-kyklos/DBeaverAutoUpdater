@@ -1,4 +1,5 @@
 ﻿using DBeaverAutoUpdater.Core.BLL;
+using DBeaverAutoUpdater.Core.Support.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,21 @@ namespace DBeaverAutoUpdater.GUI
         [STAThread]
         static void Main()
         {
-            //Application.EnableVisualStyles();
-            //Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new Form1());
+            Logger.Initialize(mode: LoggingMode.Both, useBackgroundTask: true);
+
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            IConfigBLL configBLL = new ConfigBLL();
+
+            if (!configBLL.ConfigFileExists())
+            {
+                Application.Run(new ConfigForm());
+            }
+            else
+            {
+
+            }
         }
     }
 }
