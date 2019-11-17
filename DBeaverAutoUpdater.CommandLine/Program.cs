@@ -57,7 +57,7 @@ namespace DBeaverAutoUpdater.CommandLine
                 }
 
                 ConfigurationItem configItem = configBLL.RetrieveConfiguration();
-                updateBLL.UpdateVersion(configItem);
+                updateBLL.UpdateVersion(configItem).Wait();
             }
             catch (Exception ex)
             {

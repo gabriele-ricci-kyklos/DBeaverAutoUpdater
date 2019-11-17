@@ -15,7 +15,7 @@ namespace DBeaverAutoUpdater.Core.BLL
     {
         public ICommonBLL CommonBLL => new CommonBLL();
 
-        public void UpdateVersion(ConfigurationItem configItem)
+        public async Task UpdateVersion(ConfigurationItem configItem, IProgress<double> progress = null)
         {
             configItem.AssertNotNull(nameof(configItem));
 
@@ -25,39 +25,47 @@ namespace DBeaverAutoUpdater.Core.BLL
 
             try
             {
-                Task<byte[]> zipArchiveTask = Task.Run(() => RetrieveZipFileWithBackup(configItem.Architecture, appDataPath));
+                Task<byte[]> zipArchiveTask = RetrieveZipFileWithBackup(configItem.Architecture, appDataPath, progress);
 
-                Logger.Info($"Creating a backup of the current version at {appDataOldVersionBackupPath}");
-                BackupCurrentVersion(configItem.DBeaverInstallPath, appDataOldVersionBackupPath);
-                Logger.Info($"The backup has been created");
+                Task backupTask =
+                    Task.Run(() =>
+                    {
+                        Logger.Info($"Creating a backup of the current version at {appDataOldVersionBackupPath}");
+                        BackupCurrentVersion(configItem.DBeaverInstallPath, appDataOldVersionBackupPath);
+                        Logger.Info($"The backup has been created");
+                    });
 
-                zipArchiveTask.Wait();
+                await Task.WhenAll(zipArchiveTask, backupTask);
+
+                Logger.Info("Unzipping the downloaded archive");
                 byte[] zipArchive = zipArchiveTask.Result;
-                UnzipArchiveWithBackup(zipArchive, appDataUnzippedPath);
+                UnzipArchive(zipArchive, appDataUnzippedPath, progress);
+                Logger.Info("The archive has been successfully unzipped");
+
+                Logger.Info($"Patching DBeaver current version at {configItem.DBeaverInstallPath}");
+                IOUtilities.EmptyFolder(configItem.DBeaverInstallPath);
+                IOUtilities.CopyFolderTo(Path.Combine(appDataUnzippedPath, "dbeaver"), configItem.DBeaverInstallPath, true);
+                Logger.Info("Patching successful");
             }
-            catch(Exception)
+            finally
             {
+                Logger.Info("Deleting temp data");
                 IOUtilities.DeleteFolder(appDataPath);
-                throw;
+                IOUtilities.DeleteFolder(appDataOldVersionBackupPath);
+                Logger.Info("Temp data deleted successfully");
             }
-
-            Logger.Info($"Patching DBeaver current version at {configItem.DBeaverInstallPath}");
-            IOUtilities.EmptyFolder(configItem.DBeaverInstallPath);
-            IOUtilities.CopyFolderTo(Path.Combine(appDataUnzippedPath, "dbeaver"), configItem.DBeaverInstallPath, true);
-            Logger.Info("Patching successful");
-
-            IOUtilities.DeleteFolder(appDataOldVersionBackupPath);
-            IOUtilities.DeleteFolder(appDataPath);
         }
 
-        private void UnzipArchiveWithBackup(byte[] zipArchive, string rootPath)
+        public void UnzipArchive(byte[] zipArchive, string rootPath, IProgress<double> progress = null)
         {
             zipArchive.AssertNotNull(nameof(zipArchive));
             rootPath.AssertHasText(nameof(rootPath));
 
-            Logger.Info("Unzipping the downloaded archive");
-
             IList<Tuple<string, byte[]>> files = Zipper.GetFileContentsFromZipFile(zipArchive);
+            double singleFileReportValue = 1 / (double)files.Count * 100;
+            object lockObj = new object();
+            double reportSumValue = 0;
+
             Parallel
                 .ForEach
                 (
@@ -67,10 +75,19 @@ namespace DBeaverAutoUpdater.Core.BLL
                         string filePath = Path.Combine(rootPath, file.Item1);
                         Directory.CreateDirectory(Path.GetDirectoryName(filePath));
                         File.WriteAllBytes(filePath, file.Item2);
+
+                        if (progress.IsNotNull())
+                        {
+                            lock (lockObj)
+                            {
+                                reportSumValue += singleFileReportValue;
+                                progress.Report(reportSumValue);
+                            }
                         }
+                    }
                 );
 
-            Logger.Info("The archive has been successfully unzipped");
+            progress.Report(100);
         }
 
         private void BackupCurrentVersion(string sourcePath, string destPath)
@@ -83,7 +100,7 @@ namespace DBeaverAutoUpdater.Core.BLL
             IOUtilities.CopyFolderTo(sourcePath, destPath, true);
         }
 
-        private byte[] RetrieveZipFileWithBackup(Architecture arch, string backupPath)
+        private async Task<byte[]> RetrieveZipFileWithBackup(Architecture arch, string backupPath, IProgress<double> progress = null)
         {
             backupPath.AssertHasText(nameof(backupPath));
 
@@ -96,11 +113,20 @@ namespace DBeaverAutoUpdater.Core.BLL
             string fileName = Utilities.GetFileNameFromUriString(url);
 
             Logger.Info("Downloading the zip archive");
-            if(!WebDataRetriever.TryDownloadFile(url, out byte[] zipArchive))
+
+            byte[] zipArchive = null;
+            try
             {
-                throw new ArgumentException("An error occurred while downloading the file");
+                zipArchive = await WebDataRetriever.DownloadFileAsync(url, progress);
             }
-            Logger.Info("Finished downloading the zip archive");
+            catch (Exception ex)
+            {
+                throw new ArgumentException("An error occurred while downloading the file", ex);
+            }
+            finally
+            {
+                Logger.Info("Finished downloading the zip archive");
+            }
 
             string localPath = Path.Combine(backupPath, fileName);
             Logger.Info($"Writing the zip archive locally to {backupPath}");
