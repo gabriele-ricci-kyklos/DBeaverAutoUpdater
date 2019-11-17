@@ -1,5 +1,6 @@
 ﻿using DBeaverAutoUpdater.Core.BLL;
 using DBeaverAutoUpdater.Core.Support.Logging;
+using GenericCore.Support.Web;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace DBeaverAutoUpdater.GUI
             }
             else
             {
-
+                Application.Run(new UpdateForm());
             }
         }
     }
